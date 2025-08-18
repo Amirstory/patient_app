@@ -1,0 +1,115 @@
+{% load static %}
+{% with current_url=request.resolver_match.url_name %}
+<aside class="pc-sidebar">
+  <div class="pc-brand">
+    <a class="brand-link" href="{% url 'home' %}">
+      <i class="fas fa-brain me-2"></i> PsyCare
+    </a>
+    <button class="btn btn-link btn-sm d-lg-none text-white" id="sidebarClose" aria-label="Fermer">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="pc-user px-3 py-3">
+    {% if user.is_authenticated %}
+      <div class="d-flex align-items-center gap-2">
+        <div class="avatar bg-gradient text-white">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="lh-sm">
+          <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+          <small class="opacity-75">Connecté</small>
+        </div>
+      </div>
+    {% else %}
+      <div class="text-white-50">
+        <i class="fas fa-circle me-2"></i>Non connecté
+      </div>
+    {% endif %}
+  </div>
+
+  <nav class="pc-menu">
+    <ul class="list-unstyled m-0">
+
+      <li class="pc-section">Navigation</li>
+      <li>
+        <a class="pc-link {% if current_url == 'home' %}active{% endif %}" href="{% url 'home' %}">
+          <i class="fas fa-house"></i><span>Accueil</span>
+        </a>
+      </li>
+
+      {% if user.is_authenticated %}
+        <li class="pc-section">Cabinet</li>
+
+        <!-- Patients -->
+        <li>
+          <button class="pc-link pc-toggle {% if current_url in 'liste_patients ajouter_patient' %}active{% endif %}" data-bs-toggle="collapse" data-bs-target="#menuPatients" aria-expanded="{% if current_url in 'liste_patients ajouter_patient' %}true{% else %}false{% endif %}">
+            <i class="fas fa-users"></i><span>Patients</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+          </button>
+          <div id="menuPatients" class="collapse {% if current_url in 'liste_patients ajouter_patient' %}show{% endif %}">
+            <ul class="pc-submenu">
+              <li><a class="{% if current_url == 'liste_patients' %}active{% endif %}" href="{% url 'liste_patients' %}"><i class="fas fa-list"></i>Liste des patients</a></li>
+              <li><a class="{% if current_url == 'ajouter_patient' %}active{% endif %}" href="{% url 'ajouter_patient' %}"><i class="fas fa-user-plus"></i>Ajouter un patient</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Consultations -->
+        <li>
+          <button class="pc-link pc-toggle {% if current_url in 'liste_consultations' %}active{% endif %}" data-bs-toggle="collapse" data-bs-target="#menuConsult" aria-expanded="{% if current_url in 'liste_consultations' %}true{% else %}false{% endif %}">
+            <i class="fas fa-stethoscope"></i><span>Consultations</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+          </button>
+          <div id="menuConsult" class="collapse {% if current_url in 'liste_consultations' %}show{% endif %}">
+            <ul class="pc-submenu">
+              <li><a class="{% if current_url == 'liste_consultations' %}active{% endif %}" href="{% url 'liste_consultations' %}"><i class="fas fa-list-ul"></i>Liste des consultations</a></li>
+              <!-- Lien direct d’ajout optionnel : tu peux le laisser vide si tu préfères -->
+              <li><a href="#"><i class="fas fa-plus-circle"></i>Ajouter une consultation</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Rendez-vous (sans URLs pour l’instant) -->
+        <li>
+          <button class="pc-link pc-toggle" data-bs-toggle="collapse" data-bs-target="#menuRDV" aria-expanded="false">
+            <i class="fas fa-calendar-check"></i><span>Rendez-vous</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+          </button>
+          <div id="menuRDV" class="collapse">
+            <ul class="pc-submenu">
+              <li><a href="#"><i class="fas fa-calendar-day"></i>Agenda</a></li>
+              <li><a href="#"><i class="fas fa-calendar-plus"></i>Planifier un RDV</a></li>
+              <li><a href="#"><i class="fas fa-bell"></i>Rappels</a></li>
+              <li><a href="#"><i class="fas fa-sliders-h"></i>Paramètres RDV</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="pc-section">Compte</li>
+        <li class="mt-2 px-3">
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn w-100 btn-outline-light">
+              <i class="fas fa-sign-out-alt me-2"></i>Se déconnecter
+            </button>
+          </form>
+        </li>
+
+      {% else %}
+        <li class="pc-section">Accès</li>
+        <li>
+          <a class="pc-link" href="{% url 'home' %}">
+            <i class="fas fa-right-to-bracket"></i><span>Connexion</span>
+          </a>
+        </li>
+        <li>
+          <a class="pc-link" href="{% url 'register' %}">
+            <i class="fas fa-user-plus"></i><span>Créer un compte</span>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</aside>
+{% endwith %}

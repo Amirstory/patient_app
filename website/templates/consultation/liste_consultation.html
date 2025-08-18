@@ -1,0 +1,578 @@
+<!-- liste_consultation.html - -->
+{% extends 'base.html' %}
+{% block title %}Liste des Consultations{% endblock %}
+{% block extra_css %}
+<style>
+    .header-section {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .search-section {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        padding: 1rem;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .btn-action {
+        padding: 0.375rem 0.75rem;
+        border-radius: 8px;
+        margin: 0 2px;
+        color: white;
+    }
+    .btn-view { background-color: var(--info-color); }
+    .btn-edit { background-color: var(--success-color); }
+    .btn-delete { background-color: var(--danger-color); }
+
+    .stats-card {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .search-input,
+    .filter-select {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem;
+    }
+
+    .btn-primary-custom {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        color: white;
+    }
+
+    .pagination {
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    /* Styles pour le modal */
+    .modal-header {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    /* Styles pour l'autocomplétion */
+    .dropdown-menu.show {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175);
+    }
+    
+    .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        clear: both;
+        font-weight: 400;
+        color: #212529;
+        text-align: inherit;
+        text-decoration: none;
+        white-space: nowrap;
+        background-color: transparent;
+        border: 0;
+        cursor: pointer;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .dropdown-divider {
+        height: 0;
+        margin: 0.5rem 0;
+        overflow: hidden;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-stethoscope me-3"></i> Gestion des Consultations
+                </h1>
+                <p class="mb-0 mt-2">Suivi et gestion de toutes les consultations médicales</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="stats-card">
+                    <h4 class="mb-0">{{ total_consultations }}</h4>
+                    <small>Consultation{% if total_consultations != 1 %}s{% endif %} au total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Barre de recherche et filtres -->
+    <div class="search-section">
+        <form method="GET" class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control search-input" placeholder="Rechercher..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="type_filter" class="form-select filter-select" onchange="this.form.submit()">
+                    <option value="">Tous les types</option>
+                    {% for value,label in type_choices %}
+                        <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="statut_filter" class="form-select filter-select" onchange="this.form.submit()">
+                    <option value="">Tous les statuts</option>
+                    {% for value,label in statut_choices %}
+                        <option value="{{ value }}" {% if statut_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="date_filter" class="form-select filter-select" onchange="this.form.submit()">
+                    <option value="">Toutes les dates</option>
+                    <option value="aujourd_hui" {% if date_filter == 'aujourd_hui' %}selected{% endif %}>Aujourd'hui</option>
+                    <option value="cette_semaine" {% if date_filter == 'cette_semaine' %}selected{% endif %}>Cette semaine</option>
+                    <option value="ce_mois" {% if date_filter == 'ce_mois' %}selected{% endif %}>Ce mois</option>
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#consultationModal" onclick="resetModalForNewConsultation()">
+                    <i class="fas fa-plus me-1"></i> Nouvelle
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consult in consultations %}
+                <tr>
+                    <td>#{{ consult.id }}</td>
+                    <td>{{ consult.patient.nom }} {{ consult.patient.prenom }}</td>
+                    <td>{{ consult.get_type_display }}</td>
+                    <td>{{ consult.date_consultation|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if consult.statut == 'planifie' %}bg-info
+                            {% elif consult.statut == 'en_cours' %}bg-warning
+                            {% elif consult.statut == 'termine' %}bg-success
+                            {% elif consult.statut == 'annule' %}bg-danger
+                            {% endif %}">
+                            {{ consult.get_statut_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <!-- Bouton Voir -->
+                        <a href="{% url 'detail_consultation' consult.id %}" class="btn btn-action btn-view btn-sm" title="Voir les détails">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        
+                        <!-- Bouton Modifier -->
+                        <button type="button" class="btn btn-action btn-edit btn-sm" 
+                                onclick="editConsultation({{ consult.id }})"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#consultationModal"
+                                title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        
+                        <!-- Bouton Supprimer -->
+                        <button type="button" class="btn btn-action btn-delete btn-sm" 
+                                onclick="confirmDelete({{ consult.id }}, '{{ consult.patient.nom }} {{ consult.patient.prenom }}')"
+                                title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="fas fa-stethoscope fa-2x mb-2"></i><br>
+                        Aucune consultation trouvée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if consultations.has_other_pages %}
+    <nav>
+        <ul class="pagination">
+            {% if consultations.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ consultations.previous_page_number }}">&laquo;</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ consultations.number }}</span></li>
+            {% if consultations.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ consultations.next_page_number }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Modal Corrigé -->
+<div class="modal fade" id="consultationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Nouvelle Consultation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'ajouter_consultation' %}" id="consultationForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" id="consultationId" name="consultation_id" value="">
+                    <!-- CHAMP CACHÉ POUR LE NOUVEAU PATIENT -->
+                    <input type="hidden" id="new_patient_name" name="new_patient_name" value="">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Patient *</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="patientSearch" placeholder="Tapez le nom du patient..." autocomplete="off">
+                            <input type="hidden" name="patient" id="patient" required>
+                            <div id="patientDropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Type *</label>
+                        <select class="form-select" name="type" id="type" required>
+                            {% for value, label in type_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date et heure *</label>
+                        <input type="datetime-local" class="form-control" name="date_consultation" id="date_consultation" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Statut</label>
+                        <select class="form-select" name="statut" id="statut">
+                            {% for value, label in statut_choices %}
+                                <option value="{{ value }}" {% if value == 'planifie' %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Diagnostic</label>
+                        <textarea class="form-control" name="diagnostic" id="diagnostic" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Prix (DH)</label>
+                        <input type="number" class="form-control" name="prix" id="prix" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary-custom">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette consultation ?</p>
+                <p class="fw-bold text-danger" id="deleteConsultationInfo"></p>
+                <p class="text-muted"><small>Cette action est irréversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="POST" id="deleteForm" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i>
+                        Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Base de données des patients
+const patients = [
+    {% for patient in patients %}
+    {
+        id: {{ patient.id }},
+        nom: "{{ patient.nom|escapejs }}",
+        prenom: "{{ patient.prenom|escapejs }}",
+        fullName: "{{ patient.nom|escapejs }} {{ patient.prenom|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// JavaScript avec pré-remplissage des données
+const consultations = [
+    {% for consult in consultations %}
+    {
+        id: {{ consult.id }},
+        patient: {{ consult.patient.id }},
+        patientName: "{{ consult.patient.nom|escapejs }} {{ consult.patient.prenom|escapejs }}",
+        type: "{{ consult.type }}",
+        date_consultation: "{{ consult.date_consultation|date:'Y-m-d\TH:i' }}",
+        statut: "{{ consult.statut }}",
+        diagnostic: "{{ consult.diagnostic|default:''|escapejs }}",
+        prix: {{ consult.prix|default:0 }}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Variables globales pour l'autocomplétion
+let selectedPatientId = null;
+let newPatientName = null;
+let autocompleteInitialized = false;
+
+// Fonction d'autocomplétion pour les patients
+function setupPatientAutocomplete() {
+    if (autocompleteInitialized) return;
+    
+    const searchInput = document.getElementById('patientSearch');
+    const hiddenInput = document.getElementById('patient');
+    const dropdown = document.getElementById('patientDropdown');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (query.length === 0) {
+            dropdown.classList.remove('show');
+            hiddenInput.value = '';
+            selectedPatientId = null;
+            newPatientName = null;
+            document.getElementById('new_patient_name').value = '';
+            return;
+        }
+
+        // Filtrer les patients existants
+        const filtered = patients.filter(patient => 
+            patient.fullName.toLowerCase().includes(query)
+        );
+
+        // Construire le dropdown
+        let html = '';
+        
+        // Patients existants
+        filtered.forEach(patient => {
+            html += `<a class="dropdown-item" href="#" onclick="selectPatient(${patient.id}, '${patient.fullName.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-user me-2"></i>${patient.fullName}
+                     </a>`;
+        });
+
+        // Option pour créer un nouveau patient si aucun match exact
+        const exactMatch = filtered.some(patient => 
+            patient.fullName.toLowerCase() === query
+        );
+        
+        if (!exactMatch && query.length > 2) {
+            html += `<div class="dropdown-divider"></div>
+                     <a class="dropdown-item text-success" href="#" onclick="createNewPatient('${query.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-plus me-2"></i>Créer "${query}"
+                     </a>`;
+        }
+
+        dropdown.innerHTML = html;
+        dropdown.classList.add('show');
+    });
+
+    // Fermer le dropdown si on clique ailleurs
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+    
+    autocompleteInitialized = true;
+}
+
+// Sélectionner un patient existant
+function selectPatient(patientId, patientName) {
+    document.getElementById('patientSearch').value = patientName;
+    document.getElementById('patient').value = patientId;
+    document.getElementById('patientDropdown').classList.remove('show');
+    selectedPatientId = patientId;
+    newPatientName = null;
+    document.getElementById('new_patient_name').value = '';
+    console.log('Patient sélectionné:', patientId, patientName);
+}
+
+// Créer un nouveau patient - FONCTION CORRIGÉE
+function createNewPatient(name) {
+    document.getElementById('patientSearch').value = name;
+    document.getElementById('patient').value = 'new_patient';
+    document.getElementById('patientDropdown').classList.remove('show');
+    selectedPatientId = null;
+    newPatientName = name;
+    // CORRECTION PRINCIPALE: Remplir directement le champ caché
+    document.getElementById('new_patient_name').value = name;
+    console.log('Nouveau patient à créer:', name);
+}
+
+function editConsultation(id) {
+    // Changer le titre et l'action
+    document.getElementById('modalTitle').textContent = 'Modifier Consultation';
+    document.getElementById('consultationId').value = id;
+    document.getElementById('consultationForm').action = '{% url "modifier_consultation" %}';
+    
+    // Trouver et charger les données de la consultation
+    const consult = consultations.find(c => c.id === id);
+    if (consult) {
+        // Remplir le champ patient
+        document.getElementById('patientSearch').value = consult.patientName;
+        document.getElementById('patient').value = consult.patient;
+        selectedPatientId = consult.patient;
+        newPatientName = null;
+        document.getElementById('new_patient_name').value = '';
+        
+        document.getElementById('type').value = consult.type;
+        document.getElementById('date_consultation').value = consult.date_consultation;
+        document.getElementById('statut').value = consult.statut;
+        document.getElementById('diagnostic').value = consult.diagnostic;
+        document.getElementById('prix').value = consult.prix;
+    }
+}
+
+// Réinitialiser le modal pour nouvelle consultation - FONCTION CORRIGÉE
+function resetModalForNewConsultation() {
+    document.getElementById('modalTitle').textContent = 'Nouvelle Consultation';
+    document.getElementById('consultationId').value = '';
+    document.getElementById('consultationForm').action = '{% url "ajouter_consultation" %}';
+    
+    // Réinitialiser le formulaire
+    document.getElementById('consultationForm').reset();
+    
+    // Réinitialiser les variables patient
+    selectedPatientId = null;
+    newPatientName = null;
+    document.getElementById('patientSearch').value = '';
+    document.getElementById('patient').value = '';
+    document.getElementById('new_patient_name').value = '';
+    
+    // Fermer le dropdown si ouvert
+    document.getElementById('patientDropdown').classList.remove('show');
+    
+    // Définir la date par défaut à maintenant
+    const now = new Date();
+    const dateString = now.toISOString().slice(0, 16);
+    document.getElementById('date_consultation').value = dateString;
+    
+    console.log('Modal réinitialisé pour nouvelle consultation');
+}
+// Fonction pour confirmer la suppression
+function confirmDelete(consultationId, patientName) {
+    document.getElementById('deleteConsultationInfo').textContent = 
+        `Patient: ${patientName} (ID: #${consultationId})`;
+    document.getElementById('deleteForm').action = 
+        `{% url 'supprimer_consultation' 0 %}`.replace('0', consultationId);
+    
+    // Afficher le modal de confirmation
+    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    modal.show();
+}
+
+// Initialiser l'autocomplétion quand le modal s'ouvre
+document.getElementById('consultationModal').addEventListener('shown.bs.modal', function() {
+    setupPatientAutocomplete();
+    // Donner le focus au champ de recherche patient
+    document.getElementById('patientSearch').focus();
+});
+
+// Debug avant soumission
+document.getElementById('consultationForm').addEventListener('submit', function(e) {
+    console.log('=== SOUMISSION DU FORMULAIRE ===');
+    console.log('Patient ID:', document.getElementById('patient').value);
+    console.log('Nouveau patient name:', document.getElementById('new_patient_name').value);
+    console.log('Patient search:', document.getElementById('patientSearch').value);
+    
+    // Validation simple
+    if (!document.getElementById('patient').value) {
+        e.preventDefault();
+        alert('Veuillez sélectionner un patient ou créer un nouveau patient');
+        return false;
+    }
+});
+
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page chargée - Patients disponibles:', patients.length);
+    console.log('Consultations disponibles:', consultations.length);
+});
+</script>
+{% endblock %}

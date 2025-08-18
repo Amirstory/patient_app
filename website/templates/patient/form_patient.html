@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="header-section py-4 text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 2rem;">
+    <div class="container">
+        <h1 class="mb-0">
+            <i class="fas fa-user-plus me-3"></i>
+            {{ title }}
+        </h1>
+        <p class="mb-0 mt-2">Remplissez les informations du patient</p>
+    </div>
+</div>
+
+<div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-container p-4 bg-white rounded shadow-sm mx-auto" style="max-width: 600px;">
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.nom.id_for_label }}" class="form-label required">{{ form.nom.label }}</label>
+                    {{ form.nom }}
+                    {% if form.nom.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.nom.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.prenom.id_for_label }}" class="form-label required">{{ form.prenom.label }}</label>
+                    {{ form.prenom }}
+                    {% if form.prenom.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.prenom.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.age.id_for_label }}" class="form-label required">{{ form.age.label }}</label>
+                    {{ form.age }}
+                    {% if form.age.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.age.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.telephone.id_for_label }}" class="form-label required">{{ form.telephone.label }}</label>
+                    {{ form.telephone }}
+                    {% if form.telephone.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.telephone.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.email.errors.0 }}
+                    </div>
+                {% endif %}
+                <div class="form-text">
+                    <i class="fas fa-info-circle me-1"></i>
+                    L'adresse email est optionnelle
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'liste_patients' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>
+                    {% if patient %}Modifier{% else %}Enregistrer{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

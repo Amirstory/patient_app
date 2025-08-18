@@ -1,0 +1,483 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PsyCare - Plateforme de Gestion Psychiatrique{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-hover);
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        animation: float 8s ease-in-out infinite;
+    }
+
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 150px;
+        height: 150px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 50%;
+        animation: float 10s ease-in-out infinite reverse;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .hero-subtitle {
+        font-size: 1.3rem;
+        font-weight: 300;
+        opacity: 0.95;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    .hero-illustration {
+        font-size: 12rem;
+        color: rgba(255,255,255,0.15);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .welcome-alert {
+        background: rgba(255,255,255,0.15);
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+        color: white;
+    }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .module-card {
+        background: var(--white);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid transparent;
+    }
+
+    .module-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+        transform-origin: left;
+    }
+
+    .module-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .module-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--primary-color);
+    }
+
+    .module-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--primary-gradient);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .module-card:hover .module-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .module-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+    }
+
+    .module-description {
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .module-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .module-btn:hover {
+        color: white;
+        background: var(--primary-gradient);
+        transform: translateX(5px);
+    }
+
+    .innovation-badge {
+        background: linear-gradient(45deg, #ff6b6b, #feca57);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+        animation: pulse 2s infinite;
+    }
+
+    .coming-soon-badge {
+        background: linear-gradient(45deg, #74b9ff, #0984e3);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+
+    .login-container {
+        max-width: 500px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: var(--shadow-hover);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-header i {
+        width: 80px;
+        height: 80px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .login-form .form-control {
+        border-radius: 15px;
+        border: 2px solid var(--border-color);
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .login-form .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .btn-login {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 15px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        width: 100%;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-login:hover {
+        background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .register-link {
+        display: block;
+        text-align: center;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 1rem;
+        border-radius: 15px;
+        background: rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .register-link:hover {
+        background: var(--primary-gradient);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .hero-illustration {
+            font-size: 8rem;
+        }
+        
+        .modules-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .module-card {
+            padding: 1.5rem;
+        }
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+        50% {
+            transform: translateY(-20px) rotate(5deg);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+    <!-- Section Hero pour utilisateurs connectés -->
+    <div class="hero-section">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="hero-title">
+                    <i class="fas fa-brain me-3"></i>
+                    PsyCare
+                </h1>
+                <p class="hero-subtitle">
+                    Plateforme intelligente de gestion psychiatrique avec suivi de traitement en temps réel
+                </p>
+                
+                <div class="welcome-alert">
+                    <i class="fas fa-user-check me-2"></i>
+                    <strong>Bienvenue, {{ user.get_full_name|default:user.username }}</strong>
+                    <br>
+                    <small class="opacity-75">Dernière connexion aujourd'hui</small>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="hero-illustration">
+                    <i class="fas fa-laptop-medical"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modules de l'application -->
+    <div class="modules-grid">
+        <div class="module-card">
+            <div class="module-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="module-title">Gestion des Patients</h3>
+            <p class="module-description">
+                Dossiers patients numériques complets avec historique médical, informations personnelles et suivi personnalisé.
+            </p>
+            <a href="{% url 'liste_patients' %}" class="module-btn">
+                <i class="fas fa-arrow-right"></i>
+                Accéder au module
+            </a>
+        </div>
+
+        <div class="module-card">
+            <div class="coming-soon-badge">Bientôt disponible</div>
+            <div class="module-icon">
+                <i class="fas fa-stethoscope"></i>
+            </div>
+            <h3 class="module-title">Consultations</h3>
+            <p class="module-description">
+                Gestion complète des consultations, notes de séances, prescriptions et suivi thérapeutique avancé.
+            </p>
+            <a href="{% url 'liste_consultations' %}" class="module-btn">
+                <i class="fas fa-clock"></i>
+                En développement
+            </a>
+        </div>
+
+        <div class="module-card">
+            <div class="innovation-badge">Innovation</div>
+            <div class="module-icon">
+                <i class="fas fa-pills"></i>
+            </div>
+            <h3 class="module-title">Suivi des Traitements</h3>
+            <p class="module-description">
+                Système intelligent de suivi médicamenteux avec alertes, rappels et analyse d'observance en temps réel.
+            </p>
+            <a href="#" class="module-btn">
+                <i class="fas fa-rocket"></i>
+                Découvrir l'innovation
+            </a>
+        </div>
+
+        <div class="module-card">
+            <div class="coming-soon-badge">En préparation</div>
+            <div class="module-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h3 class="module-title">Planning & Rendez-vous</h3>
+            <p class="module-description">
+                Agenda intelligent avec gestion automatisée des rendez-vous, rappels patients et optimisation des créneaux.
+            </p>
+            <a href="#" class="module-btn">
+                <i class="fas fa-calendar-plus"></i>
+                Planifier un rendez-vous
+            </a>
+        </div>
+
+        <div class="module-card">
+            <div class="coming-soon-badge">Bientôt</div>
+            <div class="module-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="module-title">Statistiques Cabinet</h3>
+            <p class="module-description">
+                Tableaux de bord interactifs, analyses de performance et rapports détaillés pour optimiser votre pratique.
+            </p>
+            <a href="#" class="module-btn">
+                <i class="fas fa-chart-bar"></i>
+                Voir les statistiques
+            </a>
+        </div>
+
+        <div class="module-card">
+            <div class="coming-soon-badge">Version Pro</div>
+            <div class="module-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="module-title">Suivi Psychologique</h3>
+            <p class="module-description">
+                Tests psychométriques avancés, évaluations continues et outils d'analyse comportementale intégrés.
+            </p>
+            <a href="#" class="module-btn">
+                <i class="fas fa-microscope"></i>
+                Explorer les outils
+            </a>
+        </div>
+    </div>
+
+{% else %}
+    <!-- Section de connexion pour utilisateurs non authentifiés -->
+    <div class="page-header text-center">
+        <h1><i class="fas fa-brain me-3"></i>PsyCare</h1>
+        <p class="subtitle">Connectez-vous pour accéder à votre plateforme de gestion psychiatrique</p>
+    </div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <div>
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <h2>Connexion</h2>
+            <p class="text-muted">Accédez à votre espace professionnel</p>
+        </div>
+
+        <form method="POST" action="{% url 'home' %}" class="login-form">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <div class="position-relative">
+                    <i class="fas fa-user position-absolute" style="left: 1rem; top: 1.2rem; color: var(--text-muted);"></i>
+                    <input type="text" 
+                           class="form-control" 
+                           name="username" 
+                           placeholder="Nom d'utilisateur" 
+                           required
+                           style="padding-left: 3rem;">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="position-relative">
+                    <i class="fas fa-lock position-absolute" style="left: 1rem; top: 1.2rem; color: var(--text-muted);"></i>
+                    <input type="password" 
+                           class="form-control" 
+                           name="password" 
+                           placeholder="Mot de passe" 
+                           required
+                           style="padding-left: 3rem;">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-login text-white">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Se connecter
+            </button>
+        </form>
+
+        <a href="{% url 'register' %}" class="register-link">
+            <i class="fas fa-user-plus me-2"></i>
+            Créer un nouveau compte
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

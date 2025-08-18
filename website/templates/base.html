@@ -1,0 +1,228 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>{% block title %}PsyCare{% endblock %}</title>
+
+  <!-- Bootstrap & Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary-gradient: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      --primary-color:#667eea;
+      --secondary-color:#764ba2;
+      --success-color:#28a745;
+      --white:#ffffff;
+      --bg:#f6f7fb;
+      --text-dark:#1f2d3d;
+      --text-muted:#6b7280;
+      --border-color:#e5e7eb;
+      --shadow: 0 4px 16px rgba(0,0,0,.06);
+      --shadow-hover: 0 10px 30px rgba(102,126,234,.25);
+      --sidebar-w: 280px;
+    }
+
+    html, body { height: 100%; }
+    body{
+      background: var(--bg);
+      color: var(--text-dark);
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* Layout */
+    .pc-wrap{
+      display:flex; min-height:100%;
+    }
+    .pc-sidebar{
+      width: var(--sidebar-w);
+      background: var(--primary-gradient);
+      color:#fff;
+      display:flex; flex-direction:column;
+      position: fixed; inset: 0 auto 0 0; z-index: 1030;
+      box-shadow: var(--shadow);
+      transform: translateX(0);
+      transition: transform .3s ease;
+    }
+    .pc-brand{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 1rem 1rem; border-bottom: 1px solid rgba(255,255,255,.15);
+    }
+    .brand-link{
+      color:#fff; text-decoration:none; font-weight:700; letter-spacing:.3px;
+      display:flex; align-items:center; font-size:1.05rem;
+    }
+    .pc-user{ border-bottom: 1px solid rgba(255,255,255,.12);}
+    .avatar{ width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:12px; background: rgba(255,255,255,.15); }
+
+    .pc-menu{ padding: .5rem 0 1.25rem; overflow-y:auto; }
+    .pc-menu .pc-section{
+      font-size:.75rem; text-transform:uppercase; letter-spacing:.08em;
+      color: rgba(255,255,255,.7); padding: .75rem 1rem .35rem;
+    }
+    .pc-link{
+      width:100%; display:flex; align-items:center; gap:.75rem;
+      padding:.7rem 1rem; color:#fff; text-decoration:none; border:0; background:transparent;
+    }
+    .pc-link i{ opacity:.95; }
+    .pc-link:hover{ background: rgba(255,255,255,.08); }
+    .pc-link.active{ background: rgba(255,255,255,.16); font-weight:600; }
+    .pc-link.pc-toggle{ width:100%; border:0; text-align:left; }
+
+    .pc-submenu{ list-style:none; padding: .25rem 0 .75rem .5rem; margin:0; }
+    .pc-submenu a{
+      display:flex; align-items:center; gap:.6rem; padding:.5rem 1.25rem; color:#f3f4f6; text-decoration:none; font-size:.95rem;
+    }
+    .pc-submenu a:hover{ background: rgba(255,255,255,.08); }
+    .pc-submenu a.active{ background: rgba(255,255,255,.16); font-weight:600; }
+
+    /* Content area */
+    .pc-main{
+      margin-left: var(--sidebar-w);
+      flex:1; min-width:0;
+      display:flex; flex-direction:column;
+    }
+    .pc-header{
+      background: var(--white); border-bottom: 1px solid var(--border-color);
+      padding: .75rem 1rem; display:flex; align-items:center; gap:.75rem;
+      position: sticky; top: 0; z-index: 1020;
+    }
+    .pc-header .btn-sidebar{
+      display:none;
+    }
+    .pc-content{
+      padding: 1.25rem 1.25rem 2rem;
+    }
+
+    /* Messages */
+    .pc-messages{ position:relative; z-index: 5; }
+    .alert{ box-shadow: var(--shadow); border-radius: .9rem; }
+
+    /* Mobile */
+    @media (max-width: 991.98px){
+      .pc-sidebar{ transform: translateX(-100%); }
+      body.sidebar-open .pc-sidebar{ transform: translateX(0); }
+      .pc-main{ margin-left: 0; }
+      .pc-header .btn-sidebar{ display:inline-flex; }
+    }
+
+    /* ===== Boutons d’action (fix icône invisible) ===== */
+    .btn-action{
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      line-height: 1;
+    }
+    
+    /* S’assure que l’icône prend la couleur du bouton (important si thème/hover) */
+    .btn i,
+    .btn svg{
+      color: currentColor !important;
+      opacity: 1;
+    }
+    
+    /* Variante “Voir” (bleu) */
+    .btn-view{
+      --btn-fg: #0d6efd;                    /* texte/icône */
+      --btn-bg: rgba(13,110,253,.10);       /* fond au repos */
+      --btn-hover-bg: #0d6efd;              /* fond au survol */
+      --btn-hover-fg: #fff;                 /* texte/icône au survol */
+    
+      color: var(--btn-fg) !important;
+      background: var(--btn-bg) !important;
+      border: 1px solid transparent;
+    }
+    .btn-view:hover{
+      color: var(--btn-hover-fg) !important;
+      background: var(--btn-hover-bg) !important;
+    }
+    
+    /* (Optionnel) autres variantes cohérentes si tu as des boutons éditer/supprimer */
+    .btn-edit{
+      color:#ffc107 !important;
+      background: rgba(255,193,7,.12) !important;
+      border: 1px solid transparent;
+    }
+    .btn-edit:hover{
+      color:#212529 !important;
+      background:#ffc107 !important;
+    }
+    
+    .btn-delete{
+      color:#dc3545 !important;
+      background: rgba(220,53,69,.10) !important;
+      border: 1px solid transparent;
+    }
+    .btn-delete:hover{
+      color:#fff !important;
+      background:#dc3545 !important;
+    }
+    
+
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="pc-wrap">
+  {% include 'navbar.html' %}
+
+  <main class="pc-main">
+    <header class="pc-header">
+      <button class="btn btn-outline-secondary btn-sidebar d-lg-none" id="sidebarToggle" aria-label="Ouvrir le menu">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        {% if user.is_authenticated %}
+          <span class="text-muted small d-none d-sm-inline">Bonjour,</span>
+          <span class="fw-semibold">{{ user.get_full_name|default:user.username }}</span>
+        {% else %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'home' %}">
+            <i class="fas fa-right-to-bracket me-1"></i> Connexion
+          </a>
+          <a class="btn btn-sm btn-primary" href="{% url 'register' %}">
+            <i class="fas fa-user-plus me-1"></i> Créer un compte
+          </a>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="pc-content">
+      <!-- Django messages -->
+      <div class="pc-messages">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<!-- JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+  (function(){
+    const body = document.body;
+    const openBtn = document.getElementById('sidebarToggle');
+    const closeBtn = document.getElementById('sidebarClose');
+    if(openBtn){ openBtn.addEventListener('click', ()=> body.classList.toggle('sidebar-open')); }
+    if(closeBtn){ closeBtn.addEventListener('click', ()=> body.classList.remove('sidebar-open')); }
+  })();
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

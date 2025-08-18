@@ -1,0 +1,209 @@
+<!-- CRÉER ce nouveau fichier: templates/consultation/detail_consultation.html -->
+
+{% extends 'base.html' %}
+{% block title %}Détail Consultation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1.5rem;
+    }
+
+    .detail-row {
+        padding: 1rem 0;
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-value {
+        color: #6c757d;
+    }
+
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-primary">
+            <i class="fas fa-eye me-3"></i>
+            Détail de la Consultation #{{ consultation.id }}
+        </h1>
+        <a href="{% url 'liste_consultations' %}" class="btn btn-back">
+            <i class="fas fa-arrow-left me-2"></i>
+            Retour à la liste
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Informations Patient -->
+        <div class="col-md-6">
+            <div class="detail-card">
+                <div class="card-header-custom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        Informations Patient
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <div class="detail-label">Nom complet</div>
+                        <div class="detail-value">{{ consultation.patient.nom }} {{ consultation.patient.prenom }}</div>
+                    </div>
+                    {% if consultation.patient.age %}
+                    <div class="detail-row">
+                        <div class="detail-label">Âge</div>
+                        <div class="detail-value">{{ consultation.patient.age }} ans</div>
+                    </div>
+                    {% endif %}
+                    {% if consultation.patient.telephone %}
+                    <div class="detail-row">
+                        <div class="detail-label">Téléphone</div>
+                        <div class="detail-value">{{ consultation.patient.telephone }}</div>
+                    </div>
+                    {% endif %}
+                    {% if consultation.patient.email %}
+                    <div class="detail-row">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value">{{ consultation.patient.email }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations Consultation -->
+        <div class="col-md-6">
+            <div class="detail-card">
+                <div class="card-header-custom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-stethoscope me-2"></i>
+                        Détails Consultation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <div class="detail-label">Type de consultation</div>
+                        <div class="detail-value">{{ consultation.get_type_display }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Date et heure</div>
+                        <div class="detail-value">{{ consultation.date_consultation|date:"d/m/Y à H:i" }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Statut</div>
+                        <div class="detail-value">
+                            <span class="badge status-badge 
+                                {% if consultation.statut == 'planifie' %}bg-info
+                                {% elif consultation.statut == 'en_cours' %}bg-warning
+                                {% elif consultation.statut == 'termine' %}bg-success
+                                {% elif consultation.statut == 'annule' %}bg-danger
+                                {% endif %}">
+                                {{ consultation.get_statut_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% if consultation.prix %}
+                    <div class="detail-row">
+                        <div class="detail-label">Prix</div>
+                        <div class="detail-value">{{ consultation.prix }} DH</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnostic et Notes -->
+    <div class="row">
+        {% if consultation.diagnostic %}
+        <div class="col-md-6">
+            <div class="detail-card">
+                <div class="card-header-custom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-notes-medical me-2"></i>
+                        Diagnostic
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ consultation.diagnostic|linebreaksbr }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if consultation.traitement %}
+        <div class="col-md-6">
+            <div class="detail-card">
+                <div class="card-header-custom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-pills me-2"></i>
+                        Traitement
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ consultation.traitement|linebreaksbr }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if consultation.notes_medecin %}
+        <div class="col-12">
+            <div class="detail-card">
+                <div class="card-header-custom">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard me-2"></i>
+                        Notes du médecin
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ consultation.notes_medecin|linebreaksbr }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="text-center mt-4">
+        <a href="{% url 'liste_consultations' %}" class="btn btn-secondary me-2">
+            <i class="fas fa-arrow-left me-2"></i>
+            Retour
+        </a>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>
+            Imprimer
+        </button>
+    </div>
+</div>
+{% endblock %}
