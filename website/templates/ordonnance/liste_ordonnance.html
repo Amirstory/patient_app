@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liste des Ordonnances{% endblock %}
+
+{% block extra_css %}
+<style>
+    .header-section {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .search-section {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        border: none;
+        font-weight: 600;
+        color: #495057;
+        padding: 1rem;
+    }
+
+    .table td {
+        border: none;
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .btn-action {
+        padding: 0.375rem 0.75rem;
+        border-radius: 8px;
+        margin: 0 2px;
+        color: white;
+    }
+
+    .btn-view { background-color: var(--info-color); }
+    .btn-edit { background-color: var(--success-color); }
+    .btn-delete { background-color: var(--danger-color); }
+
+    .stats-card {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .search-input {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem;
+    }
+
+    .search-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-primary-custom {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        color: white;
+    }
+
+    .pagination {
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .ordonnance-badge {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .consultation-link {
+        background: #f0f6ff;
+        color: #004085;
+        padding: 0.25rem 0.5rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .description-preview {
+        background: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border-left: 3px solid #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-prescription-bottle-alt me-3"></i> Gestion des Ordonnances
+                </h1>
+                <p class="mb-0 mt-2">Gérez vos ordonnances médicales efficacement</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="stats-card">
+                    <h4 class="mb-0">{{ total_ordonnances }}</h4>
+                    <small>Ordonnance{% if total_ordonnances != 1 %}s{% endif %} au total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="search-section">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <form method="GET" class="d-flex">
+                    <input type="text" name="search" class="form-control search-input me-2" 
+                           placeholder="Rechercher une ordonnance..." value="{{ search_query }}">
+                    <button class="btn btn-primary-custom" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="col-md-4">
+                {% if search_query %}
+                    <a href="{% url 'liste_ordonnances' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i> Effacer les filtres
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'nouvelle_ordonnance' %}" class="btn btn-primary-custom">
+                    <i class="fas fa-plus me-1"></i> Nouvelle Ordonnance
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>N° Ordonnance</th>
+                    <th>Patient</th>
+                    <th>Date de création</th>
+                    <th>Consultation liée</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ordonnance in ordonnances %}
+                <tr>
+                    <td>
+                        <span class="ordonnance-badge">#{{ ordonnance.id }}</span>
+                      </td>
+                    <td>
+                        <div class="fw-bold">
+                            {{ ordonnance.patient.nom }} {{ ordonnance.patient.prenom|default:"" }}
+                        </div>
+                    </td>
+                    
+                    <td>
+                        <div>{{ ordonnance.date_creation|date:"d/m/Y" }}</div>
+                        <small class="text-muted">{{ ordonnance.date_creation|date:"H:i" }}</small>
+                    </td>
+                    <td>
+                        {% if ordonnance.consultation %}
+                            <div class="consultation-link">
+                                <i class="fas fa-link me-1"></i>
+                                <div>{{ ordonnance.consultation.get_type_display }}</div>
+                                <div style="font-size: 0.7rem;">{{ ordonnance.consultation.date_consultation|date:"d/m/Y" }}</div>
+                            </div>
+                        {% else %}
+                            <small class="text-muted">
+                                <i class="fas fa-minus-circle me-1"></i>Aucune
+                            </small>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        <a href="{% url 'detail_ordonnance' ordonnance.id %}" class="btn btn-action btn-view btn-sm">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'modifier_ordonnance' ordonnance.id %}" class="btn btn-action btn-edit btn-sm">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        
+                        <!-- Bouton Supprimer -->
+                        <button type="button" class="btn btn-action btn-delete btn-sm" 
+                                onclick="confirmDelete({{ ordonnance.id }}, '{{ ordonnance.patient.nom }} {{ ordonnance.patient.prenom }}')"
+                                title="Supprimer">
+                        <i class="fas fa-trash-alt"></i>
+                        </button>
+
+
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="fas fa-prescription-bottle-alt fa-2x mb-2"></i><br>
+                        {% if search_query %}
+                            Aucune ordonnance trouvée pour « {{ search_query }} »
+                        {% else %}
+                            Aucune ordonnance trouvée.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if ordonnances.has_other_pages %}
+    <nav>
+        <ul class="pagination">
+            {% if ordonnances.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">&laquo;&laquo;</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ ordonnances.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">&laquo;</a>
+                </li>
+            {% endif %}
+            {% for num in ordonnances.paginator.page_range %}
+                {% if num == ordonnances.number %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > ordonnances.number|add:'-3' and num < ordonnances.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if ordonnances.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ ordonnances.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">&raquo;</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ ordonnances.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">&raquo;&raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette ordonnance ?</p>
+                <p class="fw-bold text-danger" id="deleteOrdonnanceInfo"></p>
+                <p class="text-muted"><small>Cette action est irréversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="POST" id="deleteForm" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i>
+                        Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Fonction pour confirmer la suppression (GARDER CETTE PARTIE)
+    function confirmDelete(ordonnanceId, patientName) {
+        document.getElementById('deleteOrdonnanceInfo').textContent = 
+            `Ordonnance de ${patientName} (ID: #${ordonnanceId})`;
+        document.getElementById('deleteForm').action = 
+            `{% url 'supprimer_ordonnance' 0 %}`.replace('0', ordonnanceId);
+        
+        // Afficher le modal de confirmation
+        const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        modal.show();
+    }
+</script>
+
+{% endblock %}

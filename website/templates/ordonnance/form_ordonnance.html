@@ -1,0 +1,568 @@
+<!-- form_ordonnance.html -->
+{% extends 'base.html' %}
+{% block title %}{% if ordonnance %}Modifier{% else %}Nouvelle{% endif %} Ordonnance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .header-section {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+
+    .btn-primary-custom {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        color: white;
+    }
+
+    .btn-secondary-custom {
+        background: #6c757d;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        color: white;
+    }
+
+    /* Styles spéciaux pour la description avec séparateurs visuels */
+    .description-editor {
+        position: relative;
+    }
+
+    .description-textarea {
+        font-family: 'Courier New', monospace;
+        line-height: 1.6;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .description-textarea:focus {
+        background: white;
+        border-color: var(--primary-color);
+    }
+
+    .prescription-helper {
+        background: #e7f3ff;
+        border-left: 4px solid var(--primary-color);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0 10px 10px 0;
+        font-size: 0.9rem;
+    }
+
+    /* Styles pour l'autocomplétion */
+    .dropdown-menu.show {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175);
+    }
+    
+    .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        clear: both;
+        font-weight: 400;
+        color: #212529;
+        text-align: inherit;
+        text-decoration: none;
+        white-space: nowrap;
+        background-color: transparent;
+        border: 0;
+        cursor: pointer;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .dropdown-divider {
+        height: 0;
+        margin: 0.5rem 0;
+        overflow: hidden;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .consultation-info {
+        background: #f0f6ff;
+        border-left: 3px solid var(--primary-color);
+        padding: 0.75rem;
+        border-radius: 0 8px 8px 0;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-{% if ordonnance %}edit{% else %}plus{% endif %} me-3"></i>
+                    {% if ordonnance %}Modifier{% else %}Nouvelle{% endif %} Ordonnance
+                </h1>
+                <p class="mb-0 mt-2">
+                    {% if ordonnance %}
+                        Modification de l'ordonnance #{{ ordonnance.numero }} - {{ ordonnance.patient.nom }} {{ ordonnance.patient.prenom }}
+                    {% else %}
+                        Création d'une nouvelle ordonnance médicale
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'liste_ordonnances' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="form-container">
+        <form method="POST" id="ordonnanceForm">
+            {% csrf_token %}
+            
+            <!-- CHAMP CACHÉ POUR LE NOUVEAU PATIENT -->
+            <input type="hidden" id="new_patient_name" name="new_patient_name" value="">
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Patient *</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="patientSearch" placeholder="Tapez le nom du patient..." autocomplete="off">
+                            <input type="hidden" name="patient" id="patient" required>
+                            <div id="patientDropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Consultation associée (optionnelle)</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="consultationSearch" placeholder="Rechercher une consultation..." autocomplete="off">
+                            <input type="hidden" name="consultation" id="consultation">
+                            <div id="consultationDropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        <small class="text-muted">Optionnel : lier cette ordonnance à une consultation précise</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Affichage des informations de la consultation sélectionnée -->
+            <div id="consultationInfo" class="consultation-info mb-3" style="display: none;">
+                <h6><i class="fas fa-info-circle me-1"></i> Consultation sélectionnée :</h6>
+                <div id="consultationDetails"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Prescription *</label>
+                
+                <!-- Aide à la saisie -->
+                <div class="prescription-helper">
+                    <h6><i class="fas fa-lightbulb me-1"></i> Aide à la rédaction :</h6>
+                    <ul class="mb-0 small">
+                        <li><strong>•</strong> Utilisez le symbole <code>•</code> en début de ligne pour structurer votre ordonnance</li>
+                        <li><strong>•</strong> Exemple : • Doliprane 1000mg - 1 comprimé matin et soir - 7 jours</li>
+                        <li><strong>•</strong> Chaque médicament = une nouvelle ligne avec •</li>
+                    </ul>
+                </div>
+
+                <div class="description-editor">
+                    <textarea class="form-control description-textarea" name="description" id="description" rows="10" 
+                              placeholder="• Médicament 1 - Posologie - Durée&#10;• Médicament 2 - Posologie - Durée&#10;• Consignes particulières..." required>{% if ordonnance %}{{ ordonnance.description }}{% endif %}</textarea>
+                </div>
+                <small class="text-muted">
+                    Détaillez tous les médicaments, posologies, durées et consignes. 
+                    Utilisez • pour séparer chaque ligne de prescription.
+                </small>
+            </div>
+
+            <!-- Boutons d'actions rapides pour la prescription -->
+            <div class="mb-3">
+                <label class="form-label text-muted">Actions rapides :</label>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-primary" onclick="addPrescriptionLine('• ')">
+                        <i class="fas fa-plus me-1"></i> Nouvelle ligne
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="addPrescriptionTemplate('paracetamol')">
+                        <i class="fas fa-pills me-1"></i> Paracétamol
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="addPrescriptionTemplate('repos')">
+                        <i class="fas fa-bed me-1"></i> Repos
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'liste_ordonnances' %}" class="btn btn-secondary-custom">
+                    <i class="fas fa-times me-1"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-primary-custom">
+                    <i class="fas fa-save me-1"></i> 
+                    {% if ordonnance %}Modifier{% else %}Créer{% endif %} l'ordonnance
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Base de données des patients
+const patients = [
+    {% for patient in patients %}
+    {
+        id: {{ patient.id }},
+        nom: "{{ patient.nom|escapejs }}",
+        prenom: "{{ patient.prenom|escapejs }}",
+        fullName: "{{ patient.nom|escapejs }} {{ patient.prenom|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Base de données des consultations
+const consultations = [
+    {% for consult in consultations %}
+    {
+        id: {{ consult.id }},
+        patient: {{ consult.patient.id }},
+        patientName: "{{ consult.patient.nom|escapejs }} {{ consult.patient.prenom|escapejs }}",
+        type: "{{ consult.get_type_display|escapejs }}",
+        date: "{{ consult.date_consultation|date:'d/m/Y H:i' }}",
+        diagnostic: "{{ consult.diagnostic|default:''|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Variables globales
+let selectedPatientId = null;
+let selectedConsultationId = null;
+let newPatientName = null;
+
+// === AUTOCOMPLÉTION PATIENTS ===
+function setupPatientAutocomplete() {
+    const searchInput = document.getElementById('patientSearch');
+    const hiddenInput = document.getElementById('patient');
+    const dropdown = document.getElementById('patientDropdown');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (query.length === 0) {
+            dropdown.classList.remove('show');
+            hiddenInput.value = '';
+            selectedPatientId = null;
+            newPatientName = null;
+            document.getElementById('new_patient_name').value = '';
+            // Réinitialiser aussi les consultations disponibles
+            updateAvailableConsultations();
+            return;
+        }
+
+        // Filtrer les patients existants
+        const filtered = patients.filter(patient => 
+            patient.fullName.toLowerCase().includes(query)
+        );
+
+        // Construire le dropdown
+        let html = '';
+        
+        // Patients existants
+        filtered.forEach(patient => {
+            html += `<a class="dropdown-item" href="#" onclick="selectPatient(${patient.id}, '${patient.fullName.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-user me-2"></i>${patient.fullName}
+                     </a>`;
+        });
+
+        // Option pour créer un nouveau patient
+        const exactMatch = filtered.some(patient => 
+            patient.fullName.toLowerCase() === query
+        );
+        
+        if (!exactMatch && query.length > 2) {
+            html += `<div class="dropdown-divider"></div>
+                     <a class="dropdown-item text-success" href="#" onclick="createNewPatient('${query.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-plus me-2"></i>Créer "${query}"
+                     </a>`;
+        }
+
+        dropdown.innerHTML = html;
+        dropdown.classList.add('show');
+    });
+}
+
+// Sélectionner un patient existant
+function selectPatient(patientId, patientName) {
+    document.getElementById('patientSearch').value = patientName;
+    document.getElementById('patient').value = patientId;
+    document.getElementById('patientDropdown').classList.remove('show');
+    selectedPatientId = patientId;
+    newPatientName = null;
+    document.getElementById('new_patient_name').value = '';
+    
+    // Mettre à jour les consultations disponibles pour ce patient
+    updateAvailableConsultations();
+}
+
+// Créer un nouveau patient
+function createNewPatient(name) {
+    document.getElementById('patientSearch').value = name;
+    document.getElementById('patient').value = 'new_patient';
+    document.getElementById('patientDropdown').classList.remove('show');
+    selectedPatientId = null;
+    newPatientName = name;
+    document.getElementById('new_patient_name').value = name;
+    
+    // Vider les consultations car nouveau patient
+    updateAvailableConsultations();
+}
+
+// === AUTOCOMPLÉTION CONSULTATIONS ===
+function setupConsultationAutocomplete() {
+    const searchInput = document.getElementById('consultationSearch');
+    const hiddenInput = document.getElementById('consultation');
+    const dropdown = document.getElementById('consultationDropdown');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (query.length === 0) {
+            dropdown.classList.remove('show');
+            hiddenInput.value = '';
+            selectedConsultationId = null;
+            hideConsultationInfo();
+            return;
+        }
+
+        // Filtrer les consultations pour le patient sélectionné
+        const availableConsultations = getAvailableConsultations();
+        const filtered = availableConsultations.filter(consult => 
+            consult.type.toLowerCase().includes(query) ||
+            consult.date.toLowerCase().includes(query) ||
+            consult.diagnostic.toLowerCase().includes(query)
+        );
+
+        // Construire le dropdown
+        let html = '';
+        
+        if (filtered.length === 0 && selectedPatientId) {
+            html = '<div class="dropdown-item-text text-muted">Aucune consultation trouvée pour ce patient</div>';
+        } else if (filtered.length === 0 && !selectedPatientId) {
+            html = '<div class="dropdown-item-text text-warning">Veuillez d\'abord sélectionner un patient</div>';
+        } else {
+            filtered.forEach(consult => {
+                html += `<a class="dropdown-item" href="#" onclick="selectConsultation(${consult.id}, '${consult.type.replace(/'/g, "\\'")} - ${consult.date}')">
+                            <div><strong>${consult.type}</strong></div>
+                            <div class="small text-muted">${consult.date}</div>
+                            ${consult.diagnostic ? `<div class="small">${consult.diagnostic.substring(0, 50)}...</div>` : ''}
+                         </a>`;
+            });
+        }
+
+        dropdown.innerHTML = html;
+        dropdown.classList.add('show');
+    });
+}
+
+// Filtrer les consultations selon le patient sélectionné
+function getAvailableConsultations() {
+    if (!selectedPatientId) return [];
+    return consultations.filter(consult => consult.patient == selectedPatientId);
+}
+
+// Mettre à jour l'affichage des consultations disponibles
+function updateAvailableConsultations() {
+    const consultationSearch = document.getElementById('consultationSearch');
+    const availableConsultations = getAvailableConsultations();
+    
+    if (availableConsultations.length === 0) {
+        consultationSearch.placeholder = selectedPatientId ? 
+            "Aucune consultation pour ce patient" : 
+            "Sélectionnez d'abord un patient";
+        consultationSearch.disabled = !selectedPatientId;
+    } else {
+        consultationSearch.placeholder = "Rechercher une consultation...";
+        consultationSearch.disabled = false;
+    }
+    
+    // Réinitialiser la consultation sélectionnée
+    consultationSearch.value = '';
+    document.getElementById('consultation').value = '';
+    selectedConsultationId = null;
+    hideConsultationInfo();
+}
+
+// Sélectionner une consultation
+function selectConsultation(consultationId, consultationDisplay) {
+    document.getElementById('consultationSearch').value = consultationDisplay;
+    document.getElementById('consultation').value = consultationId;
+    document.getElementById('consultationDropdown').classList.remove('show');
+    selectedConsultationId = consultationId;
+    
+    // Afficher les informations de la consultation
+    showConsultationInfo(consultationId);
+}
+
+// Afficher les informations de la consultation sélectionnée
+function showConsultationInfo(consultationId) {
+    const consult = consultations.find(c => c.id == consultationId);
+    if (consult) {
+        const infoDiv = document.getElementById('consultationInfo');
+        const detailsDiv = document.getElementById('consultationDetails');
+        
+        detailsDiv.innerHTML = `
+            <div><strong>Type :</strong> ${consult.type}</div>
+            <div><strong>Date :</strong> ${consult.date}</div>
+            <div><strong>Patient :</strong> ${consult.patientName}</div>
+            ${consult.diagnostic ? `<div><strong>Diagnostic :</strong> ${consult.diagnostic}</div>` : ''}
+        `;
+        
+        infoDiv.style.display = 'block';
+    }
+}
+
+// Masquer les informations de consultation
+function hideConsultationInfo() {
+    document.getElementById('consultationInfo').style.display = 'none';
+}
+
+// === HELPERS POUR LA PRESCRIPTION ===
+function addPrescriptionLine(prefix = '• ') {
+    const textarea = document.getElementById('description');
+    const cursorPos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, cursorPos);
+    const textAfter = textarea.value.substring(cursorPos);
+    
+    let newText;
+    if (textBefore === '' || textBefore.endsWith('\n')) {
+        newText = textBefore + prefix + textAfter;
+    } else {
+        newText = textBefore + '\n' + prefix + textAfter;
+    }
+    
+    textarea.value = newText;
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = cursorPos + prefix.length + (textBefore.endsWith('\n') ? 0 : 1);
+}
+
+function addPrescriptionTemplate(type) {
+    const templates = {
+        'paracetamol': '• Paracétamol 1000mg - 1 comprimé matin et soir - 7 jours',
+        'repos': '• Repos au lit - 3 jours\n• Arrêt de travail si nécessaire'
+    };
+    
+    const textarea = document.getElementById('description');
+    const template = templates[type];
+    if (template) {
+        const cursorPos = textarea.selectionStart;
+        const textBefore = textarea.value.substring(0, cursorPos);
+        const textAfter = textarea.value.substring(cursorPos);
+        
+        let newText;
+        if (textBefore === '' || textBefore.endsWith('\n')) {
+            newText = textBefore + template + '\n' + textAfter;
+        } else {
+            newText = textBefore + '\n' + template + '\n' + textAfter;
+        }
+        
+        textarea.value = newText;
+        textarea.focus();
+    }
+}
+
+// Fermer les dropdowns si on clique ailleurs
+document.addEventListener('click', function(e) {
+    const patientSearch = document.getElementById('patientSearch');
+    const patientDropdown = document.getElementById('patientDropdown');
+    const consultationSearch = document.getElementById('consultationSearch');
+    const consultationDropdown = document.getElementById('consultationDropdown');
+    
+    if (!patientSearch.contains(e.target) && !patientDropdown.contains(e.target)) {
+        patientDropdown.classList.remove('show');
+    }
+    
+    if (!consultationSearch.contains(e.target) && !consultationDropdown.contains(e.target)) {
+        consultationDropdown.classList.remove('show');
+    }
+});
+
+// Validation avant soumission
+document.getElementById('ordonnanceForm').addEventListener('submit', function(e) {
+    console.log('=== SOUMISSION DU FORMULAIRE ORDONNANCE ===');
+    console.log('Patient ID:', document.getElementById('patient').value);
+    console.log('Consultation ID:', document.getElementById('consultation').value);
+    console.log('Description:', document.getElementById('description').value);
+    
+    // Validation simple
+    if (!document.getElementById('patient').value) {
+        e.preventDefault();
+        alert('Veuillez sélectionner un patient ou créer un nouveau patient');
+        return false;
+    }
+    
+    if (!document.getElementById('description').value.trim()) {
+        e.preventDefault();
+        alert('Veuillez saisir la description de l\'ordonnance');
+        return false;
+    }
+});
+
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    setupPatientAutocomplete();
+    setupConsultationAutocomplete();
+    
+    // Si on modifie une ordonnance, pré-remplir les champs
+    {% if ordonnance %}
+        // Pré-remplir le patient
+        document.getElementById('patientSearch').value = "{{ ordonnance.patient.nom }} {{ ordonnance.patient.prenom }}";
+        document.getElementById('patient').value = {{ ordonnance.patient.id }};
+        selectedPatientId = {{ ordonnance.patient.id }};
+        
+        // Pré-remplir la consultation si elle existe
+        {% if ordonnance.consultation %}
+            document.getElementById('consultationSearch').value = "{{ ordonnance.consultation.get_type_display }} - {{ ordonnance.consultation.date_consultation|date:'d/m/Y H:i' }}";
+            document.getElementById('consultation').value = {{ ordonnance.consultation.id }};
+            selectedConsultationId = {{ ordonnance.consultation.id }};
+            showConsultationInfo({{ ordonnance.consultation.id }});
+        {% endif %}
+        
+        // Mettre à jour les consultations disponibles
+        updateAvailableConsultations();
+    {% endif %}
+});
+</script>
+{% endblock %}

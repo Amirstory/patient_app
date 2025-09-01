@@ -1,3 +1,4 @@
+  <!-- details patients -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -360,6 +361,14 @@
             background: white !important;
         }
     }
+    /* Tableau historique médical */
+.medical-table { width: 100%; border-collapse: collapse; }
+.medical-table th, .medical-table td { padding: 0.75rem 0.8rem; border-bottom: 1px solid #e9ecef; text-align: left; }
+.medical-table th { font-weight: 700; color: #2c3e50; background:#f8f9fa; }
+.medical-table tr:hover { background: #f6fbff; }
+.medical-actions a { margin-right: .5rem; text-decoration: none; font-weight:600; color:#667eea; }
+.medical-actions a:hover { text-decoration: underline; }
+
 </style>
 {% endblock %}
 
@@ -373,7 +382,7 @@
             </div>
         </div>
         <div class="patient-name-section">
-            <div class="patient-id">Patient #{{ patient.id }}</div>
+            <div class="patient-id">Patient </div>
             <h1>{{ patient.nom }} {{ patient.prenom }}</h1>
             <div style="color: #6c757d; margin-top: 0.5rem;">
                 <i class="fas fa-calendar-plus me-1"></i>
@@ -402,6 +411,15 @@
                 <div class="info-content">
                     <div class="info-label">Sexe</div>
                     <div class="info-value">{{ patient.sexe }}</div>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fas fa-briefcase"></i> <!-- Icône pour la profession -->
+                </div>
+                <div class="info-content">
+                    <div class="info-label">Profession</div>
+                    <div class="info-value">{{ patient.profession }}</div>
                 </div>
             </div>
 
@@ -487,12 +505,43 @@
     <div class="content-area">
         <!-- Contenu Historique médical -->
         <div id="medical-content" class="content-section active">
-            <div class="content-placeholder">
-                <i class="fas fa-stethoscope"></i>
-                <h3>Historique médical</h3>
-                <p>Le contenu de cette section sera ajouté prochainement</p>
-            </div>
+            {% if consultations %}
+                <h3 style="margin-bottom:1rem;">Historique médical ({{ consultations|length }})</h3>
+                <table class="medical-table">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Type</th>
+                            <th>Date consultation</th>
+                            <th>Prix</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for c in consultations %}
+                        <tr>
+                            <td>{{ patient.nom }} {{ patient.prenom }}</td>
+                            <td>{{ c.get_type_display }}</td>
+                            <td>{{ c.date_consultation|date:"d/m/Y H:i" }}</td>
+                            <td>{{ c.prix }} DH</td>
+                            <td class="medical-actions">
+                                <a href="#">Voir</a>
+                                <a href="#">Éditer</a>
+                                <a href="#">Imprimer</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="content-placeholder">
+                    <i class="fas fa-stethoscope"></i>
+                    <h3>Historique médical</h3>
+                    <p>Aucune consultation enregistrée pour ce patient.</p>
+                </div>
+            {% endif %}
         </div>
+        
 
         <!-- Contenu Documents médicaux -->
         <div id="documents-content" class="content-section">

@@ -162,6 +162,58 @@
       color:#fff !important;
       background:#dc3545 !important;
     }
+    /* ===== Boutons d’action (fix icône invisible) ===== */
+.btn-action{
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  line-height: 1;
+}
+
+/* S’assure que l’icône prend la couleur du bouton (important si thème/hover) */
+.btn i,
+.btn svg{
+  color: currentColor !important;
+  opacity: 1;
+}
+
+/* Variante “Voir” (bleu) */
+.btn-view{
+  --btn-fg: #0d6efd;                    /* texte/icône */
+  --btn-bg: rgba(13,110,253,.10);       /* fond au repos */
+  --btn-hover-bg: #0d6efd;              /* fond au survol */
+  --btn-hover-fg: #fff;                 /* texte/icône au survol */
+
+  color: var(--btn-fg) !important;
+  background: var(--btn-bg) !important;
+  border: 1px solid transparent;
+}
+.btn-view:hover{
+  color: var(--btn-hover-fg) !important;
+  background: var(--btn-hover-bg) !important;
+}
+
+/* (Optionnel) autres variantes cohérentes si tu as des boutons éditer/supprimer */
+.btn-edit{
+  color:#ffc107 !important;
+  background: rgba(255,193,7,.12) !important;
+  border: 1px solid transparent;
+}
+.btn-edit:hover{
+  color:#212529 !important;
+  background:#ffc107 !important;
+}
+
+.btn-delete{
+  color:#dc3545 !important;
+  background: rgba(220,53,69,.10) !important;
+  border: 1px solid transparent;
+}
+.btn-delete:hover{
+  color:#fff !important;
+  background:#dc3545 !important;
+}
+
     
 
   </style>

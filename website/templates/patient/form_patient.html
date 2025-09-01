@@ -1,3 +1,4 @@
+<!-- form_patient.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -22,65 +23,134 @@
         {% endfor %}
     {% endif %}
 
-    <div class="form-container p-4 bg-white rounded shadow-sm mx-auto" style="max-width: 600px;">
+    <div class="form-container p-4 bg-white rounded shadow-sm mx-auto" style="max-width: 800px;">
         <form method="POST" novalidate>
             {% csrf_token %}
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="{{ form.nom.id_for_label }}" class="form-label required">{{ form.nom.label }}</label>
-                    {{ form.nom }}
-                    {% if form.nom.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.nom.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label for="{{ form.prenom.id_for_label }}" class="form-label required">{{ form.prenom.label }}</label>
-                    {{ form.prenom }}
-                    {% if form.prenom.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.prenom.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="{{ form.age.id_for_label }}" class="form-label required">{{ form.age.label }}</label>
-                    {{ form.age }}
-                    {% if form.age.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.age.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label for="{{ form.telephone.id_for_label }}" class="form-label required">{{ form.telephone.label }}</label>
-                    {{ form.telephone }}
-                    {% if form.telephone.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.telephone.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
+            <!-- Section Identité -->
             <div class="mb-4">
-                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                    <div class="invalid-feedback d-block">
-                        {{ form.email.errors.0 }}
+                <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-id-card me-2"></i>Identité
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nom.id_for_label }}" class="form-label required">{{ form.nom.label }}</label>
+                        {{ form.nom }}
+                        {% if form.nom.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.nom.errors.0 }}
+                            </div>
+                        {% endif %}
                     </div>
-                {% endif %}
-                <div class="form-text">
-                    <i class="fas fa-info-circle me-1"></i>
-                    L'adresse email est optionnelle
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.prenom.id_for_label }}" class="form-label">{{ form.prenom.label }}</label>
+                        {{ form.prenom }}
+                        {% if form.prenom.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.prenom.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.date_naissance.id_for_label }}" class="form-label">{{ form.date_naissance.label }}</label>
+                        {{ form.date_naissance }}
+                        {% if form.date_naissance.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.date_naissance.errors.0 }}
+                            </div>
+                        {% endif %}
+                        {% if patient.age %}
+                            <div class="form-text">
+                                <i class="fas fa-calendar me-1"></i>
+                                Âge actuel : {{ patient.age }} ans
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.sexe.id_for_label }}" class="form-label">{{ form.sexe.label }}</label>
+                        {{ form.sexe }}
+                        {% if form.sexe.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.sexe.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Contact -->
+            <div class="mb-4">
+                <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-phone me-2"></i>Contact
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.telephone.id_for_label }}" class="form-label">{{ form.telephone.label }}</label>
+                        {{ form.telephone }}
+                        {% if form.telephone.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.telephone.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.adresse.id_for_label }}" class="form-label">{{ form.adresse.label }}</label>
+                    {{ form.adresse }}
+                    {% if form.adresse.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.adresse.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Section Informations complémentaires -->
+            <div class="mb-4">
+                <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Informations complémentaires
+                </h5>
+                
+                <div class="mb-3">
+                    <label for="{{ form.profession.id_for_label }}" class="form-label">{{ form.profession.label }}</label>
+                    {{ form.profession }}
+                    {% if form.profession.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.profession.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.notes.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        <i class="fas fa-lock me-1"></i>
+                        Ces notes sont privées et visibles uniquement par vous
+                    </div>
                 </div>
             </div>
 
@@ -96,4 +166,28 @@
         </form>
     </div>
 </div>
+
+<style>
+.required::after {
+    content: " *";
+    color: #dc3545;
+}
+
+.form-container {
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.text-primary {
+    color: #667eea !important;
+}
+
+.border-bottom {
+    border-color: #e9ecef !important;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+</style>
 {% endblock %}

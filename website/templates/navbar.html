@@ -1,6 +1,7 @@
 {% load static %}
 {% with current_url=request.resolver_match.url_name %}
 <aside class="pc-sidebar">
+  <!-- Marque -->
   <div class="pc-brand">
     <a class="brand-link" href="{% url 'home' %}">
       <i class="fas fa-brain me-2"></i> PsyCare
@@ -10,16 +11,49 @@
     </button>
   </div>
 
+  <!-- Bloc utilisateur -->
   <div class="pc-user px-3 py-3">
     {% if user.is_authenticated %}
-      <div class="d-flex align-items-center gap-2">
-        <div class="avatar bg-gradient text-white">
+      <!-- Bouton qui toggle le menu utilisateur -->
+      <button type="button"
+              class="pc-link pc-toggle w-100 d-flex align-items-center gap-2"
+              data-bs-toggle="collapse"
+              data-bs-target="#menuUser"
+              aria-expanded="false"
+              aria-controls="menuUser">
+        <div class="avatar bg-gradient text-white d-inline-flex align-items-center justify-content-center">
           <i class="fas fa-user"></i>
         </div>
-        <div class="lh-sm">
-          <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+        <div class="text-start lh-sm flex-grow-1">
+          <div class="fw-semibold text-truncate">{{ user.get_full_name|default:user.username }}</div>
           <small class="opacity-75">Connecté</small>
         </div>
+        <i class="fas fa-chevron-down ms-auto"></i>
+      </button>
+
+      <!-- Sous-menu utilisateur -->
+      <div id="menuUser" class="collapse mt-2">
+        <ul class="pc-submenu">
+          <!-- Pas d’URL pour le moment : # -->
+          <li>
+            <a href="#" class="d-flex align-items-center gap-2">
+              <i class="fas fa-id-badge"></i> Profil
+            </a>
+          </li>
+          <li>
+            <a href="#" class="d-flex align-items-center gap-2">
+              <i class="fas fa-gear"></i> Paramètres
+            </a>
+          </li>
+          <li class="mt-2">
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button class="btn w-100 btn-outline-light d-flex align-items-center justify-content-center gap-2">
+                <i class="fas fa-right-from-bracket"></i> Déconnexion
+              </button>
+            </form>
+          </li>
+        </ul>
       </div>
     {% else %}
       <div class="text-white-50">
@@ -28,6 +62,7 @@
     {% endif %}
   </div>
 
+  <!-- Menu principal -->
   <nav class="pc-menu">
     <ul class="list-unstyled m-0">
 
@@ -43,36 +78,81 @@
 
         <!-- Patients -->
         <li>
-          <button class="pc-link pc-toggle {% if current_url in 'liste_patients ajouter_patient' %}active{% endif %}" data-bs-toggle="collapse" data-bs-target="#menuPatients" aria-expanded="{% if current_url in 'liste_patients ajouter_patient' %}true{% else %}false{% endif %}">
+          <button class="pc-link pc-toggle {% if current_url in 'liste_patients ajouter_patient' %}active{% endif %}"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#menuPatients"
+                  aria-expanded="{% if current_url in 'liste_patients ajouter_patient' %}true{% else %}false{% endif %}">
             <i class="fas fa-users"></i><span>Patients</span>
             <i class="fas fa-chevron-down ms-auto"></i>
           </button>
           <div id="menuPatients" class="collapse {% if current_url in 'liste_patients ajouter_patient' %}show{% endif %}">
             <ul class="pc-submenu">
-              <li><a class="{% if current_url == 'liste_patients' %}active{% endif %}" href="{% url 'liste_patients' %}"><i class="fas fa-list"></i>Liste des patients</a></li>
-              <li><a class="{% if current_url == 'ajouter_patient' %}active{% endif %}" href="{% url 'ajouter_patient' %}"><i class="fas fa-user-plus"></i>Ajouter un patient</a></li>
+              <li>
+                <a class="{% if current_url == 'liste_patients' %}active{% endif %}" href="{% url 'liste_patients' %}">
+                  <i class="fas fa-list"></i>Liste des patients
+                </a>
+              </li>
+              <li>
+                <a class="{% if current_url == 'ajouter_patient' %}active{% endif %}" href="{% url 'ajouter_patient' %}">
+                  <i class="fas fa-user-plus"></i>Ajouter un patient
+                </a>
+              </li>
             </ul>
           </div>
         </li>
 
         <!-- Consultations -->
         <li>
-          <button class="pc-link pc-toggle {% if current_url in 'liste_consultations' %}active{% endif %}" data-bs-toggle="collapse" data-bs-target="#menuConsult" aria-expanded="{% if current_url in 'liste_consultations' %}true{% else %}false{% endif %}">
+          <button class="pc-link pc-toggle {% if current_url in 'liste_consultations' %}active{% endif %}"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#menuConsult"
+                  aria-expanded="{% if current_url in 'liste_consultations' %}true{% else %}false{% endif %}">
             <i class="fas fa-stethoscope"></i><span>Consultations</span>
             <i class="fas fa-chevron-down ms-auto"></i>
           </button>
           <div id="menuConsult" class="collapse {% if current_url in 'liste_consultations' %}show{% endif %}">
             <ul class="pc-submenu">
-              <li><a class="{% if current_url == 'liste_consultations' %}active{% endif %}" href="{% url 'liste_consultations' %}"><i class="fas fa-list-ul"></i>Liste des consultations</a></li>
-              <!-- Lien direct d’ajout optionnel : tu peux le laisser vide si tu préfères -->
-              <li><a href="#"><i class="fas fa-plus-circle"></i>Ajouter une consultation</a></li>
+              <li>
+                <a class="{% if current_url == 'liste_consultations' %}active{% endif %}" href="{% url 'liste_consultations' %}">
+                  <i class="fas fa-list-ul"></i>Liste des consultations
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <i class="fas fa-plus-circle"></i>Ajouter une consultation
+                </a>
+              </li>
             </ul>
           </div>
         </li>
 
-        <!-- Rendez-vous (sans URLs pour l’instant) -->
+        <!-- Ordonnances -->
         <li>
-          <button class="pc-link pc-toggle" data-bs-toggle="collapse" data-bs-target="#menuRDV" aria-expanded="false">
+          <button class="pc-link pc-toggle {% if current_url in 'liste_ordonnances ajouter_ordonnance' %}active{% endif %}"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#menuOrdos"
+                  aria-expanded="{% if current_url in 'liste_ordonnances ajouter_ordonnance' %}true{% else %}false{% endif %}">
+            <i class="fas fa-file-prescription"></i><span>Ordonnances</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+          </button>
+          <div id="menuOrdos" class="collapse {% if current_url in 'liste_ordonnances ajouter_ordonnance' %}show{% endif %}">
+            <ul class="pc-submenu">
+              <li>
+                <a class="{% if current_url == 'liste_ordonnances' %}active{% endif %}" href="{% url 'liste_ordonnances' %}">
+                  <i class="fas fa-list"></i>Liste des ordonnances
+                </a>
+              </li>
+              
+            </ul>
+          </div>
+        </li>
+
+        <!-- Rendez-vous (pas d'URLs pour l'instant) -->
+        <li>
+          <button class="pc-link pc-toggle"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#menuRDV"
+                  aria-expanded="false">
             <i class="fas fa-calendar-check"></i><span>Rendez-vous</span>
             <i class="fas fa-chevron-down ms-auto"></i>
           </button>
@@ -84,16 +164,6 @@
               <li><a href="#"><i class="fas fa-sliders-h"></i>Paramètres RDV</a></li>
             </ul>
           </div>
-        </li>
-
-        <li class="pc-section">Compte</li>
-        <li class="mt-2 px-3">
-          <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button class="btn w-100 btn-outline-light">
-              <i class="fas fa-sign-out-alt me-2"></i>Se déconnecter
-            </button>
-          </form>
         </li>
 
       {% else %}

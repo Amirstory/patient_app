@@ -1,4 +1,5 @@
-{% extends 'base.html' %}
+ <!-- liste patients -->
+  {% extends 'base.html' %}
 {% block title %}Liste des Patients{% endblock %}
 {% block extra_css %}
 <style>
@@ -119,25 +120,15 @@
                     </button>
                 </form>
             </div>
-            <div class="col-md-3">
-                <form method="GET">
-                    <select name="age_filter" class="form-select filter-select" onchange="this.form.submit()">
-                        <option value="">Tous les âges</option>
-                        <option value="enfant" {% if age_filter == 'enfant' %}selected{% endif %}>Enfants (< 18 ans)</option>
-                        <option value="adulte" {% if age_filter == 'adulte' %}selected{% endif %}>Adultes (18-64 ans)</option>
-                        <option value="senior" {% if age_filter == 'senior' %}selected{% endif %}>Seniors (≥ 65 ans)</option>
-                    </select>
-                    <input type="hidden" name="search" value="{{ search_query }}">
-                </form>
-            </div>
-            <div class="col-md-3">
+            
+            <div class="col-md-4">
                 {% if search_query or age_filter %}
                     <a href="{% url 'liste_patients' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-times me-1"></i> Effacer les filtres
                     </a>
                 {% endif %}
             </div>
-            <div class="col-md-2 text-end">
+            <div class="col-md-4 text-end">
                 <a href="{% url 'ajouter_patient' %}" class="btn btn-primary-custom">
                     <i class="fas fa-plus me-1"></i> Nouveau Patient
                 </a>
