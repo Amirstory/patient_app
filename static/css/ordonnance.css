@@ -1,0 +1,93 @@
+/* static/css/ordonnance.css */
+:root {
+  --accent: #cc6a00; /* ajuster selon ton modèle */
+  --texte: #222;
+  --gris: #666;
+  --bleu: #0b67c2;   /* si tu as du texte en bleu dans le footer */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  color: var(--texte);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.4;
+  background: #fff;
+}
+
+.page {
+  max-width: 800px;          /* proche A4 en écran */
+  margin: 24px auto;
+  padding: 24px 28px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.nom {
+  margin: 0;
+  font-size: 22px;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+}
+
+.titres {
+  font-size: 14px;
+  color: var(--gris);
+  margin-top: 4px;
+}
+
+.date-ville {
+  font-size: 14px;
+  color: var(--texte);
+  white-space: nowrap;
+}
+
+.sep {
+  margin: 12px 0 20px;
+  border: none;
+  border-top: 1px solid #ccc;
+}
+
+.bloc {
+  margin-bottom: 16px;
+}
+
+.bloc-patient .label {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.titre-ordonnance {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: var(--texte);
+  letter-spacing: 0.5px;
+}
+
+.description {
+  font-size: 15px;
+}
+
+.liste-ordonnance {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.footer {
+  margin-top: 28px;
+  padding-top: 12px;
+  border-top: 1px solid #ccc;
+  font-size: 13px;
+  color: var(--bleu);
+  line-height: 1.35;
+}

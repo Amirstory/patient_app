@@ -552,3 +552,18 @@ def supprimer_ordonnance(request, ordonnance_id):
     return redirect('liste_ordonnances')
 
 #------imprimer ordonnace -----
+# views.py
+
+from django.shortcuts import render, get_object_or_404
+from .models import Ordonnance
+
+def ordonnance_detail(request, ordonnance_id):
+    ordonnance = get_object_or_404(Ordonnance, id=ordonnance_id)
+    patient = ordonnance.patient
+
+    context = {
+        'ordonnance': ordonnance,
+        'patient': patient,
+        'date_auj': ordonnance.date_creation.date(),  # Or use timezone.now().date()
+    }
+    return render(request, 'ordonnance/ordonnance_template.html', context)

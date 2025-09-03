@@ -34,15 +34,8 @@ urlpatterns = [
     path('ordonnances/<int:ordonnance_id>/', views.detail_ordonnance, name='detail_ordonnance'),
     path('ordonnances/<int:ordonnance_id>/modifier/', views.ordonnance_form, name='modifier_ordonnance'),
     path('ordonnances/<int:ordonnance_id>/supprimer/', views.supprimer_ordonnance, name='supprimer_ordonnance'),
-     path('ordonnances/<int:pk>/', views.detail_ordonnance, name='detail_ordonnance'),
-    
-    # Route pour imprimer l'ordonnance en PDF
-    path('ordonnances/<int:pk>/imprimer/', views.imprimer_ordonnance, name='imprimer_ordonnance'),
-
-
-
-
-
+    path('ordonnances/<int:pk>/', views.detail_ordonnance, name='detail_ordonnance'),
+    path("ordonnance/<int:ordonnance_id>/", views.generer_ordonnance, name="generer_ordonnance"),
 ]
 
 

@@ -1,0 +1,23 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 2cm;
+}
+
+header, footer {
+    text-align: center;
+    border-bottom: 2px solid black;
+    padding-bottom: 10px;
+}
+
+footer {
+    border-top: 2px solid black;
+    padding-top: 10px;
+    font-size: 12px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+main {
+    margin-top: 20px;
+}
